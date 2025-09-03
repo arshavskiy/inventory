@@ -1,0 +1,22 @@
+{
+    "inventory_units": {
+        "wafer": 73000,
+        "antennas": 78000,
+        "capacitors": 10000,
+        "epoxy": 30000
+    },
+    "inventory": {
+        "wafer": 0,
+        "antennas": 0,
+        "capacitors": 0,
+        "epoxy": 0
+    },
+    "minimum_in_weeks": {
+        "wafer": 2,
+        "antennas": 2,
+        "capacitors": 2,
+        "epoxy": 4
+    },
+    "shifts": 10,
+    "shift_amount": 30000
+}
