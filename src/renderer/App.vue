@@ -42,7 +42,7 @@
               </span>
             </n-text>
               <n-text>
-                <h3>{{store.weeks_left.wafer}} </h3> 
+                <h3 :class="{red: store.weeks_left.wafer <= 2}">{{store.weeks_left.wafer}} </h3> 
               </n-text>
              
           </div>
@@ -54,7 +54,7 @@
               <n-input-number v-model:value="store.inventory_total.antennas" :disabled="!editMode" style="width: 150px;" /></span>
             </n-text>
             <n-text>
-               <h3>{{store.weeks_left.antennas}}</h3>
+               <h3 :class="{red: store.weeks_left.antennas <= 2}">{{store.weeks_left.antennas}}</h3>
             </n-text>
           </div>
            <div class="flex-center">
@@ -66,7 +66,7 @@
              </span>
             </n-text>
             <n-text>
-               <h3>{{store.weeks_left.capacitors}}</h3>
+               <h3 :class="{red: store.weeks_left.capacitors <= 2}">{{store.weeks_left.capacitors}}</h3>
             </n-text>
           </div>
            <div class="flex-center">
@@ -78,9 +78,7 @@
              </span>
             </n-text>
             <n-text>
-              <h3>
-              {{store.weeks_left.epoxy}}
-              </h3>
+              <h3 :class="{red: store.weeks_left.epoxy <= 2}">{{store.weeks_left.epoxy}}</h3>
             </n-text>
           </div>
         </div>
@@ -333,6 +331,9 @@ code{
     white-space: pre-wrap;
     height: 40px;
     font-size: 11px;
+  }
+  .red{
+    color: red;
   }
 </style>
 
