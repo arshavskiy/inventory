@@ -46,7 +46,9 @@ async function sendMailWithCSV() {
   }
 
   const command = `powershell.exe -Command "$Outlook = New-Object -ComObject Outlook.Application; $Mail = $Outlook.CreateItem(0); $Mail.To = '${recipient}'; $Mail.Cc= '${cc}'; $Mail.Subject = '${subject}'; $Mail.HTMLBody = '${body.replace(/"/g, '\"').replace(/\n/g, '<br>')}'; $Mail.Attachments.Add((Resolve-Path '${attachment}')); $Mail.Send();"`;
+
   console.log('attachment', attachment);
+
   exec(command, (error, stdout, stderr) => {
     if (error) {
       console.error('Failed to send mail:', error);
@@ -108,11 +110,13 @@ ipcMain.on('message', (event, message) => {
 
 const round2 = (val: number) => Math.round(val * 100) / 100;
 
+
 ipcMain.handle('read-config', async () => {
   let meta = {};
   try {
     const content = await fs.readFile(configPath, 'utf-8');
     const data = JSON.parse(content);
+
 
     if (!data.inventory_total || !data.inventory_total.wafer || data.inventory_total.wafer === 0) {
 
@@ -154,6 +158,7 @@ ipcMain.handle('send-mail-with-csv', async () => {
       console.error('Error writing inventory.csv:', error);
       return error
     }
+
 
     return { success: true, metaFileData };
   } catch (e) {
