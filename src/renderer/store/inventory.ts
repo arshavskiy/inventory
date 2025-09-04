@@ -14,6 +14,12 @@ export const useInventoryStore = defineStore('inventory', {
             capacitors: 0,
             epoxy: 0
         },
+        inventory_total: {
+            wafer: 0,
+            antennas: 0,
+            capacitors: 0,
+            epoxy: 0
+        },
         minimum_in_weeks: {
             wafer: 0,
             antennas: 0,
@@ -33,40 +39,21 @@ export const useInventoryStore = defineStore('inventory', {
             lastInventorySaveDate: Date.now()
         }
     }),
-    getters: {
-        countWafer(state) {
-            return state.inventory.wafer / (state.inventory_units.wafer || 1);
-        },
-        countAntennas(state) {
-            return state.inventory.antennas / (state.inventory_units.antennas || 1);
-        },
-        countCapacitors(state) {
-            return state.inventory.capacitors / (state.inventory_units.capacitors || 1);
-        },
-        countEpoxy(state) {
-            return state.inventory.epoxy / (state.inventory_units.epoxy || 1);
-        },
-        weeksLeft(state) {
-            const round2 = (val: number) => Math.round(val * 100) / 100;
-            debugger
-            return {
-                wafer: round2(state.inventory.wafer / ((state.shifts || 1) * (state.shift_amount || 1))),
-                antennas: round2(state.inventory.antennas / ((state.shifts || 1) * (state.shift_amount || 1))),
-                capacitors: round2(state.inventory.capacitors / ((state.shifts || 1) * (state.shift_amount || 1))),
-                epoxy: round2(state.inventory.epoxy / ((state.shifts || 1) * (state.shift_amount || 1)))
-            };
-        }
-    },
     actions: {
         setInventory(data: any) {
             this.inventory = data.inventory;
             this.inventory_units = data.inventory_units;
+            this.inventory_total = data.inventory_total;
             this.minimum_in_weeks = data.minimum_in_weeks;
+            this.weeks_left = data.weeks_left;
             this.shifts = data.shifts;
             this.shift_amount = data.shift_amount;
         },
         setMeta(meta: any) {
             this.meta = meta;
+        },
+        setDataTotals(key: string, data: any) {
+            this.inventory_total[key] = data
         },
         setWeeksLeft(weeks: { wafer: number; antennas: number; capacitors: number; epoxy: number }) {
             this.weeks_left = weeks;

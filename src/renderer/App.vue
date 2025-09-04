@@ -37,12 +37,12 @@
             <label style="width: 350px;">Wafer (units): </label>
             <n-text type="info">
               <span class="flex">
-              <n-input-number v-model:value="countWafer" :disabled="!editMode" style="width: 150px;" />
-              <n-input-number v-model:value="store.inventory.wafer" :disabled="!editMode" style="width: 150px;" />
+              <n-input-number v-model:value="store.inventory.wafer" @update:value="updateInventory('wafer', $event)" :disabled="!editMode" style="width: 150px;" />
+              <n-input-number v-model:value="store.inventory_total.wafer" :disabled="!editMode" style="width: 150px;" />
               </span>
             </n-text>
               <n-text>
-                <h3>{{weeks_left.wafer}} </h3> 
+                <h3>{{store.weeks_left.wafer}} </h3> 
               </n-text>
              
           </div>
@@ -50,37 +50,36 @@
           <label style="width: 350px;">Antennas (units): </label>
            <n-text type="info">
               <span class="flex">
-              <n-input-number v-model:value="countAntennas" :disabled="!editMode" style="width: 150px;" />
-              <n-input-number v-model:value="store.inventory.antennas" :disabled="!editMode" style="width: 150px;" /></span>
+              <n-input-number v-model:value="store.inventory.antennas" @update:value="updateInventory('antennas', $event)" :disabled="!editMode" style="width: 150px;" />
+              <n-input-number v-model:value="store.inventory_total.antennas" :disabled="!editMode" style="width: 150px;" /></span>
             </n-text>
             <n-text>
-               <h3>{{weeks_left.antennas}}</h3>
+               <h3>{{store.weeks_left.antennas}}</h3>
             </n-text>
           </div>
            <div class="flex-center">
           <label style="width: 350px;">Capacitors (units): </label>
            <n-text type="info">
              <span class="flex">
-               <n-input-number v-model:value="countCapacitors" :disabled="!editMode" style="width: 150px;" />
-               <n-input-number v-model:value="store.inventory.capacitors" :disabled="!editMode" style="width: 150px;" />
+               <n-input-number v-model:value="store.inventory.capacitors" @update:value="updateInventory('capacitors', $event)" :disabled="!editMode" style="width: 150px;" />
+               <n-input-number v-model:value="store.inventory_total.capacitors" :disabled="!editMode" style="width: 150px;" />
              </span>
             </n-text>
             <n-text>
-               <h3>{{weeks_left.capacitors}}</h3>
+               <h3>{{store.weeks_left.capacitors}}</h3>
             </n-text>
           </div>
            <div class="flex-center">
           <label style="width: 350px;">Epoxy (units): </label>
            <n-text type="info">
              <span class="flex">
-               <n-input-number v-model:value="countEpoxy" :disabled="!editMode" style="width: 150px;" />
-               <n-input-number v-model:value="store.inventory.epoxy" :disabled="!editMode" style="width: 150px;" />
+               <n-input-number v-model:value="store.inventory.epoxy" @update:value="updateInventory('epoxy', $event)" :disabled="!editMode" style="width: 150px;" />
+               <n-input-number v-model:value="store.inventory_total.epoxy" :disabled="!editMode" style="width: 150px;" />
              </span>
             </n-text>
             <n-text>
               <h3>
-              {{weeks_left.epoxy}}
-
+              {{store.weeks_left.epoxy}}
               </h3>
             </n-text>
           </div>
@@ -94,10 +93,8 @@
               Antennas (units):
             </n-text>
           </div>
-              
               <n-input-number v-model:value="antennas" style="width: 150px; margin-right: 10px; " />
               <n-button type="primary" @click="printInventory">Print</n-button>
-
             </div>
             </div>  
             <code>
@@ -164,47 +161,13 @@ const antennas = ref(28000);
 
 const baseValue = ref(10)
 
-const storeWafer = ref(store.inventory.wafer)
-const storeUnitWafer = ref(store.inventory_units.wafer)
-
-// const countWafer = computed(() => round2(store.inventory.wafer / store.inventory_units.wafer));
-const round2 = (val: number) => Math.round(val * 100) / 100;
-
-
-const calculatedValue = computed({
-  get() {
-    return baseValue.value * 2
-  },
-  set(newVal) {
-    baseValue.value = newVal / 2
+const updateInventory = (key: string, value: number) => {
+  console.log('Updating inventory:', key, value);
+  if (key in store.inventory && value !== undefined) {
+    store.inventory[key] = value;
+    store.setDataTotals(key, store.inventory[key] * store.inventory_units[key]);
   }
-})
-
-
-const countWafer = computed({
-  get() {
-    debugger
-    return round2(storeWafer.value / storeUnitWafer.value)
-  },
-  set(newValue) {
-    // When someone changes the value via v-model, update baseValue accordingly
-    storeWafer.value = newValue
-  }
-})
-const countAntennas = computed(() => round2(store.inventory.antennas / store.inventory_units.antennas));
-const countCapacitors = computed(() => round2(store.inventory.capacitors / store.inventory_units.capacitors));
-const countEpoxy = computed(() => round2(store.inventory.epoxy / store.inventory_units.epoxy));
-
-const weeks_left = computed(() => {
-  return {
-                wafer: round2(  store.inventory.wafer / (store.shifts * store.shift_amount) ),
-                antennas: round2(store.inventory.antennas / (store.shifts * store.shift_amount)),
-                capacitors: round2(store.inventory.capacitors / (store.shifts * store.shift_amount)),
-                epoxy: round2(store.inventory.epoxy / (store.shifts * store.shift_amount))
-            };
-        }
-    );
-
+};
 
 const readConfig = async () => {
   try {
@@ -222,10 +185,12 @@ const loadInventory = async () => {
   loading.value = true;
   error.value = '';
   try {
-    const data = await readConfig();
-    if (data) store.setInventory(data);
-    if (data && data.meta) {
-      store.setMeta(data.meta);
+    const result = await readConfig();
+    console.log('load-inventory data:', result);
+    if (result) store.setInventory(result);
+    if (result && result.meta) {
+      store.setMeta(result.meta);
+     
     }
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
@@ -237,14 +202,21 @@ const printInventory = async () => {
   loading.value = true;
   error.value = '';
 
-  store.inventory.wafer -= antennas.value;
-  store.inventory.antennas -= antennas.value;
-  store.inventory.capacitors -= antennas.value;
-  store.inventory.epoxy -= antennas.value;
+  store.inventory_total.wafer -= antennas.value;
+  store.inventory_total.antennas -= antennas.value;
+  store.inventory_total.capacitors -= antennas.value;
+  store.inventory_total.epoxy -= antennas.value;
 
+  console.log('Printing inventory:', store);
+
+  const save = {
+    inventory_total: store.inventory_total,
+    inventory: store.inventory,
+    weeks_left: store.weeks_left,
+  }
   try {
     // @ts-ignore
-    await saveInventory(store.inventory);
+    await saveInventory(save);
   } catch (e) {
    error.value = e instanceof Error ? e.message : String(e);
   }
@@ -252,24 +224,26 @@ const printInventory = async () => {
 };
 
 const saveData = async () => {
-    const data = {
-        wafer: countWafer.value * store.inventory_units.wafer,
-        antennas: countAntennas.value * store.inventory_units.antennas,
-        capacitors: countCapacitors.value * store.inventory_units.capacitors,
-        epoxy: countEpoxy.value * store.inventory_units.epoxy
-    }
-  await saveInventory(data);
+    const save = {
+    inventory_total: store.inventory_total,
+    inventory: store.inventory,
+    weeks_left: store.weeks_left,
+  }
+  await saveInventory(save);
   editMode.value = !editMode.value;
 }
 
 const saveInventory = async (data : any) => {
   loading.value = true;
-  const newValue = JSON.parse(JSON.stringify(data))
+  // const newValue = JSON.parse(JSON.stringify(data))
+  debugger
   error.value = '';
   try {
     // @ts-ignore
-    const result = await window.electronAPI.writeInventory(newValue);
+    const result = await window.electronAPI.writeInventory(JSON.stringify(data));
      store.setMeta(result.meta);
+
+     loadInventory();
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);
   }

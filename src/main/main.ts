@@ -9,23 +9,26 @@ const metaPath = join('meta.json');
 
 
 async function sendMailWithCSV() {
-  const recipient = 'elinor.orbach@wiliot.com';
-  // const recipient = 'tal15k@tadbik.com';
-  const cc = 'yanive@tadbik.com';
+  // const recipient = 'elinor.orbach@wiliot.com';
+  const recipient = 'tal15k@tadbik.com';
+  const cc = 'tal15k@tadbik.com';
+  // const cc = 'yanive@tadbik.com';
   const subject = 'Inventory CSV';
   const attachment = 'inventory.csv';
   let body = 'Please find the current inventory. <br/><br/><br/>';
 
   try {
-    const csvData = await fs.readFile(attachment, 'utf-8');
-    const [header, values] = csvData.split('\n');
-    const keys = header.split(',');
-    const vals = values.split(',');
-    for (let i = 0; i < keys.length; i++) {
-      body += keys[i].toLocaleUpperCase() + " : " + vals[i] + "<br/>";
+    const json = await fs.readFile(configPath, 'utf-8');
+    const data = JSON.parse(json);
+    for (const [key, value] of Object.entries(data.inventory)) {
+      body += `${key.toLocaleUpperCase()} : ${value}<br/>`;
+    }
+
+    for (const [key, value] of Object.entries(data.weeks_left)) {
+      body += `weeks: ${key.toLocaleUpperCase()} : ${value}<br/>`;
     }
   } catch (e) {
-    body += '(Could not read inventory.csv)';
+    // body += '(Could not read inventory.csv)';
   }
 
   const command = `powershell.exe -Command "$Outlook = New-Object -ComObject Outlook.Application; $Mail = $Outlook.CreateItem(0); $Mail.To = '${recipient}'; $Mail.Cc= '${cc}'; $Mail.Subject = '${subject}'; $Mail.HTMLBody = '${body.replace(/"/g, '\"').replace(/\n/g, '<br>')}'; $Mail.Attachments.Add((Resolve-Path '${attachment}')); $Mail.Send();"`;
@@ -91,11 +94,33 @@ ipcMain.on('message', (event, message) => {
   console.log(message);
 })
 
+const round2 = (val: number) => Math.round(val * 100) / 100;
+
+
 ipcMain.handle('read-config', async () => {
   let meta = {};
   try {
     const content = await fs.readFile(configPath, 'utf-8');
     const data = JSON.parse(content);
+
+
+    if (!data.inventory_total || !data.inventory_total.wafer || data.inventory_total.wafer === 0) {
+
+      data.inventory_total = {
+        wafer: data.inventory.wafer * data.inventory_units.wafer,
+        antennas: data.inventory.antennas * data.inventory_units.antennas,
+        capacitors: data.inventory.capacitors * data.inventory_units.capacitors,
+        epoxy: data.inventory.epoxy * data.inventory_units.epoxy
+      };
+    }
+
+    data.weeks_left = {
+      wafer: round2(data.inventory_total.wafer / (data.shifts * data.shift_amount)),
+      antennas: round2(data.inventory_total.antennas / (data.shifts * data.shift_amount)),
+      capacitors: round2(data.inventory_total.capacitors / (data.shifts * data.shift_amount)),
+      epoxy: round2(data.inventory_total.epoxy / (data.shifts * data.shift_amount))
+    };
+
     const metaContent = await fs.readFile(metaPath, 'utf-8');
     meta = JSON.parse(metaContent);
 
@@ -131,14 +156,23 @@ ipcMain.handle('send-mail-with-csv', async () => {
 ipcMain.handle('write-inventory', async (_event, data) => {
   const content = await fs.readFile(configPath, 'utf-8');
   const fileData = JSON.parse(content);
-  fileData.inventory = data;
+  data = JSON.parse(data);
+  fileData.inventory_total = data.inventory_total;
+  fileData.weeks_left = data.weeks_left;
+
+  fileData.inventory = {
+    wafer: round2(data.inventory_total.wafer / fileData.inventory_units.wafer),
+    antennas: round2(data.inventory_total.antennas / fileData.inventory_units.antennas),
+    capacitors: round2(data.inventory_total.capacitors / fileData.inventory_units.capacitors),
+    epoxy: round2(data.inventory_total.epoxy / fileData.inventory_units.epoxy)
+  };
 
   // Write to config.json
   await fs.writeFile(configPath, JSON.stringify(fileData), 'utf-8');
 
   // Write to inventory.csv
   const csvHeaders = ['wafer', 'antennas', 'capacitors', 'epoxy'];
-  const csvValues = csvHeaders.map(h => data[h]);
+  const csvValues = csvHeaders.map(h => fileData.inventory_total[h]);
   const csvLine = `${csvHeaders.join(',')}
   ${csvValues.join(',')}`;
   await fs.writeFile('inventory.csv', csvLine, 'utf-8');
@@ -154,5 +188,5 @@ ipcMain.handle('write-inventory', async (_event, data) => {
     return error
   }
 
-  return { success: true, meta: metaFileData };
+  return { success: true, meta: metaFileData, data: fileData };
 });
