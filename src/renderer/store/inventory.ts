@@ -40,6 +40,9 @@ export const useInventoryStore = defineStore('inventory', {
         }
     }),
     actions: {
+        setShifts(shifts: number) {
+            this.shifts = shifts;
+        },
         setInventory(data: any) {
             this.inventory = data.inventory;
             this.inventory_units = data.inventory_units;

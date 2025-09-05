@@ -173,6 +173,7 @@ ipcMain.handle('write-inventory', async (_event, data) => {
   data = JSON.parse(data);
   fileData.inventory_total = data.inventory_total;
   fileData.weeks_left = data.weeks_left;
+  fileData.shifts = data.shifts;
 
   fileData.inventory = {
     wafer: round2(data.inventory_total.wafer / fileData.inventory_units.wafer),

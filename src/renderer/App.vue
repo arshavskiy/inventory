@@ -148,7 +148,7 @@
 import { ref, watch, computed } from 'vue';
 import { useInventoryStore } from './store/inventory';
 import Tabs from './components/Tabs.vue';
-import { NInput, NButton, NInputNumber, NText } from 'naive-ui';
+import { NInput, NButton, NInputNumber, NText, NSpin } from 'naive-ui';
 
 const store = useInventoryStore();
 const loading = ref(false);
@@ -157,7 +157,14 @@ const activeTab = ref(0);
 const editMode = ref(false);
 const antennas = ref(28000);
 
-const baseValue = ref(10)
+const baseValue = ref(10);
+
+const updateShifts = (value: number) => {
+  console.log('Updating shifts:', value);
+  if (value !== undefined) {
+    store.setShifts(value);
+  }
+};
 
 const updateInventory = (key: string, value: number) => {
   console.log('Updating inventory:', key, value);
