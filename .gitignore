@@ -4,3 +4,10 @@ build
 scripts
 .vscode
 .idea
+inventory.json
+meta.json
+test.json
+.DS_Store
+*.log
+npm-debug.log*
+config.json

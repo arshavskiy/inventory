@@ -6,6 +6,7 @@ import { exec } from 'child_process';
 
 const configPath = join('config.json');
 const metaPath = join('meta.json');
+const testPath = join('test.json');
 
 
 async function sendMailWithCSV() {
@@ -112,11 +113,22 @@ const round2 = (val: number) => Math.round(val * 100) / 100;
 
 
 ipcMain.handle('read-config', async () => {
+
+  const round2 = (val) => Math.round(val * 100) / 100;
+
   let meta = {};
   try {
     const content = await fs.readFile(configPath, 'utf-8');
     const data = JSON.parse(content);
 
+    if (!data.shifts) {
+      data.weeks_left = {
+        wafer: 0,
+        antennas: 0,
+        capacitors: 0,
+        epoxy: 0
+      };
+    }
 
     if (!data.inventory_total || !data.inventory_total.wafer || data.inventory_total.wafer === 0) {
 
@@ -134,6 +146,16 @@ ipcMain.handle('read-config', async () => {
       capacitors: round2(data.inventory_total.capacitors / (data.shifts * data.shift_amount)),
       epoxy: round2(data.inventory_total.epoxy / (data.shifts * data.shift_amount))
     };
+
+    let r = {
+      w: data.inventory_total.wafer,
+      shifts: data.shifts,
+      shift_amount: data.shift_amount,
+      r: (data.inventory_total.wafer / (data.shifts * data.shift_amount))
+    }
+
+    await fs.writeFile(testPath, JSON.stringify(r), 'utf-8');
+
 
     const metaContent = await fs.readFile(metaPath, 'utf-8');
     meta = JSON.parse(metaContent);

@@ -218,7 +218,10 @@ const printInventory = async () => {
     inventory_total: store.inventory_total,
     inventory: store.inventory,
     weeks_left: store.weeks_left,
+    shifts: store.shifts,
   }
+
+  console.log('Saving inventory before print:', save);
   try {
     // @ts-ignore
     await saveInventory(save);
@@ -233,6 +236,7 @@ const saveData = async () => {
     inventory_total: store.inventory_total,
     inventory: store.inventory,
     weeks_left: store.weeks_left,
+    shifts: store.shifts,
   }
   await saveInventory(save);
   editMode.value = !editMode.value;
