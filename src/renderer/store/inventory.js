@@ -40,10 +40,10 @@ export const useInventoryStore = defineStore('inventory', {
         }
     }),
     actions: {
-        setShifts(shifts: number) {
+        setShifts(shifts) {
             this.shifts = shifts;
         },
-        setInventory(data: any) {
+        setInventory(data) {
             this.inventory = data.inventory;
             this.inventory_units = data.inventory_units;
             this.inventory_total = data.inventory_total;
@@ -52,13 +52,13 @@ export const useInventoryStore = defineStore('inventory', {
             this.shifts = data.shifts;
             this.shift_amount = data.shift_amount;
         },
-        setMeta(meta: any) {
+        setMeta(meta) {
             this.meta = meta;
         },
-        setDataTotals(key: string, data: any) {
+        setDataTotals(key, data) {
             this.inventory_total[key] = data
         },
-        setWeeksLeft(weeks: { wafer: number; antennas: number; capacitors: number; epoxy: number }) {
+        setWeeksLeft(weeks) {
             this.weeks_left = weeks;
         }
     }

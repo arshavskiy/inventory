@@ -143,7 +143,7 @@
   <!-- </Tabs> -->
 </template>
 
-<script setup lang="ts">
+<script setup>
 
 import { ref, watch, computed } from 'vue';
 import { useInventoryStore } from './store/inventory';
@@ -159,14 +159,14 @@ const antennas = ref(28000);
 
 const baseValue = ref(10);
 
-const updateShifts = (value: number) => {
+const updateShifts = (value) => {
   console.log('Updating shifts:', value);
   if (value !== undefined) {
     store.setShifts(value);
   }
 };
 
-const updateInventory = (key: string, value: number) => {
+const updateInventory = (key, value) => {
   console.log('Updating inventory:', key, value);
   if (key in store.inventory && value !== undefined) {
     store.inventory[key] = value;
@@ -198,7 +198,7 @@ const loadInventory = async () => {
      
     }
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e);
+    error.value = e instanceof Error ? e.message : e;
   }
   loading.value = false;
 };
@@ -226,7 +226,7 @@ const printInventory = async () => {
     // @ts-ignore
     await saveInventory(save);
   } catch (e) {
-   error.value = e instanceof Error ? e.message : String(e);
+   error.value = e instanceof Error ? e.message : e;
   }
   loading.value = false;
 };
@@ -242,7 +242,7 @@ const saveData = async () => {
   editMode.value = !editMode.value;
 }
 
-const saveInventory = async (data : any) => {
+const saveInventory = async (data ) => {
   loading.value = true;
   // const newValue = JSON.parse(JSON.stringify(data))
   debugger
@@ -254,7 +254,7 @@ const saveInventory = async (data : any) => {
 
      loadInventory();
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e);
+    error.value = e instanceof Error ? e.message : e;
   }
   loading.value = false;
 };
